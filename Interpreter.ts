@@ -5,7 +5,7 @@ import {AstPrinter} from "./AstPrinter"
 import {Token, SVS, TokenType} from "./svs"
 import * as st from "./Stmt"
 import { Environment } from "./Environment";
-import {SVSCallable} from "./SVSCallable";
+import {SVSCallable, SVSFunction} from "./SVSCallable";
 import { callbackify } from "util";
 import * as readline from "readline-sync";
 
@@ -21,11 +21,20 @@ export class RuntimeError
         }
 }
 
+export class Return
+{
+    value : Object;
+
+    constructor(value : Object)
+    {
+        this.value = value;
+    }
+}
 
 export class Interpreter implements ex.Visitor<Object>, st.Visitor<void>
 {
 
-    private globals : Environment = new Environment();  
+    globals : Environment = new Environment();  
     private environment : Environment = this.globals;
 
     creator : SVS;
@@ -142,6 +151,21 @@ export class Interpreter implements ex.Visitor<Object>, st.Visitor<void>
     {
         if (typeof left == 'number' && typeof right == 'number') return;
         throw new RuntimeError(operator, "Operands must be a number.");
+    }
+
+    visitReturnStmt(stmt : st.Return)
+    {
+        let value : Object = null;
+        if(stmt.value != null) value = this.evaluate(stmt.value);
+
+        throw new Return(value);
+    }
+
+    visitFuncStmt(stmt : st.Func)
+    {
+        let func = new SVSFunction(stmt, this.environment);
+        this.environment.define(stmt.name.lexeme, func);
+        return null;
     }
 
     visitCallExpr(expr : ex.Call) : Object

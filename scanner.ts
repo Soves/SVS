@@ -26,7 +26,7 @@ export class Scanner
         "else" : TokenType.ELSE,
         "false" : TokenType.FALSE,
         "for" : TokenType.FOR,
-        "fun" : TokenType.FUN,
+        "func" : TokenType.FUN,
         "if" : TokenType.IF,
         "null" : TokenType.NULL,
         "or" : TokenType.OR,

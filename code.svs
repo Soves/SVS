@@ -1,2 +1,60 @@
+var quit = false;
+var roomW = 10;
+var roomH = 10;
 
-print input();
+var pX = 0;
+var pY = 0;
+
+func update()
+{
+    var in = input();
+
+    if(in=="d") pX = pX + 1;
+    if(in=="a") pX = pX - 1;
+
+    if(in=="s") pY = pY + 1;
+    if(in=="w") pY = pY - 1;
+
+    if(in=="q") quit = true;
+
+}
+
+func getPixel(x, y)
+{
+    if (pX == x and pY == y) 
+    {
+        return "# ";
+    }
+    else
+    {
+        return "+ ";
+    }
+}
+
+func draw()
+{
+
+    var str = "";
+
+    for(var i = 0; i < roomH; i = i+1)
+    {
+        for(var j = 0; j < roomW; j = j+1)
+        {
+            str = str + getPixel(j,i);
+        } 
+        print str;
+        str = "";
+    }
+
+}
+
+func main()
+{
+    while(!quit)
+    {
+        update();
+        draw();
+    }
+}
+
+main();

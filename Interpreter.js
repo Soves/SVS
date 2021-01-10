@@ -1,8 +1,9 @@
 "use strict";
 exports.__esModule = true;
-exports.Interpreter = exports.RuntimeError = void 0;
+exports.Interpreter = exports.Return = exports.RuntimeError = void 0;
 var svs_1 = require("./svs");
 var Environment_1 = require("./Environment");
+var SVSCallable_1 = require("./SVSCallable");
 var readline = require("readline-sync");
 var RuntimeError = /** @class */ (function () {
     function RuntimeError(token, message) {
@@ -12,6 +13,13 @@ var RuntimeError = /** @class */ (function () {
     return RuntimeError;
 }());
 exports.RuntimeError = RuntimeError;
+var Return = /** @class */ (function () {
+    function Return(value) {
+        this.value = value;
+    }
+    return Return;
+}());
+exports.Return = Return;
 var Interpreter = /** @class */ (function () {
     function Interpreter(creator) {
         this.globals = new Environment_1.Environment();
@@ -99,6 +107,17 @@ var Interpreter = /** @class */ (function () {
         if (typeof left == 'number' && typeof right == 'number')
             return;
         throw new RuntimeError(operator, "Operands must be a number.");
+    };
+    Interpreter.prototype.visitReturnStmt = function (stmt) {
+        var value = null;
+        if (stmt.value != null)
+            value = this.evaluate(stmt.value);
+        throw new Return(value);
+    };
+    Interpreter.prototype.visitFuncStmt = function (stmt) {
+        var func = new SVSCallable_1.SVSFunction(stmt, this.environment);
+        this.environment.define(stmt.name.lexeme, func);
+        return null;
     };
     Interpreter.prototype.visitCallExpr = function (expr) {
         var _this = this;

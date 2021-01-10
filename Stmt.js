@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
-exports.While = exports.Var = exports.Print = exports.If = exports.Expression = exports.Block = exports.Stmt = void 0;
+exports.While = exports.Var = exports.Return = exports.Print = exports.Func = exports.If = exports.Expression = exports.Block = exports.Stmt = void 0;
 var Stmt = /** @class */ (function () {
     function Stmt() {
     }
@@ -61,6 +61,21 @@ var If = /** @class */ (function (_super) {
     return If;
 }(Stmt));
 exports.If = If;
+var Func = /** @class */ (function (_super) {
+    __extends(Func, _super);
+    function Func(name, params, body) {
+        var _this = _super.call(this) || this;
+        _this.name = name;
+        _this.params = params;
+        _this.body = body;
+        return _this;
+    }
+    Func.prototype.accept = function (visitor) {
+        return visitor.visitFuncStmt(this);
+    };
+    return Func;
+}(Stmt));
+exports.Func = Func;
 var Print = /** @class */ (function (_super) {
     __extends(Print, _super);
     function Print(expression) {
@@ -74,6 +89,20 @@ var Print = /** @class */ (function (_super) {
     return Print;
 }(Stmt));
 exports.Print = Print;
+var Return = /** @class */ (function (_super) {
+    __extends(Return, _super);
+    function Return(keyword, value) {
+        var _this = _super.call(this) || this;
+        _this.keyword = keyword;
+        _this.value = value;
+        return _this;
+    }
+    Return.prototype.accept = function (visitor) {
+        return visitor.visitReturnStmt(this);
+    };
+    return Return;
+}(Stmt));
+exports.Return = Return;
 var Var = /** @class */ (function (_super) {
     __extends(Var, _super);
     function Var(name, initializer) {

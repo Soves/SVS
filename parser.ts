@@ -49,6 +49,7 @@ export class Parser
     private declaration() : st.Stmt
     {
         try{
+            if (this.match(TokenType.FUN)) return this.function("function");
             if(this.match(TokenType.VAR)) return this.varDeclaration();
 
             return this.statement();
@@ -80,6 +81,7 @@ export class Parser
         if(this.match(TokenType.FOR)) return this.forStatement();
         if(this.match(TokenType.IF)) return this.ifStatement();
         if(this.match(TokenType.PRINT)) return this.printStatement();
+        if(this.match(TokenType.RETURN)) return this.returnStatement();
         if(this.match(TokenType.WHILE)) return this.whileStatement();
         if(this.match(TokenType.LEFT_BRACE)) return new st.Block(this.block());
 
@@ -105,6 +107,45 @@ export class Parser
         }
 
         return expr;
+    }
+
+    private function(kind : string) : st.Func
+    {
+        let name : Token = this.consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+        this.consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name");
+        let parameters : Token[] = [];
+        if(!this.check(TokenType.RIGHT_PAREN))
+        {
+            do
+            {
+                if(parameters.length >= 255)
+                {
+                    this.error(this.peek(), "Can't have more than 255 parameters.");
+                }
+
+                parameters.push(this.consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            }
+            while(this.match(TokenType.COMMA));
+        }
+
+        this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+        this.consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        let body : st.Stmt[] = this.block();
+        return new st.Func(name, parameters, body);
+    }
+
+    private returnStatement() : st.Stmt
+    {
+        let keyword : Token = this.previous();
+        let value : ex.Expr = null;
+
+        if (!this.check(TokenType.SEMICOLON))
+        {
+            value = this.expression();
+        }
+
+        this.consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+        return new st.Return(keyword, value);
     }
 
     private forStatement() : st.Stmt

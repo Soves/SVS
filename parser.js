@@ -34,6 +34,8 @@ var Parser = /** @class */ (function () {
     };
     Parser.prototype.declaration = function () {
         try {
+            if (this.match(svs_1.TokenType.FUN))
+                return this["function"]("function");
             if (this.match(svs_1.TokenType.VAR))
                 return this.varDeclaration();
             return this.statement();
@@ -59,6 +61,8 @@ var Parser = /** @class */ (function () {
             return this.ifStatement();
         if (this.match(svs_1.TokenType.PRINT))
             return this.printStatement();
+        if (this.match(svs_1.TokenType.RETURN))
+            return this.returnStatement();
         if (this.match(svs_1.TokenType.WHILE))
             return this.whileStatement();
         if (this.match(svs_1.TokenType.LEFT_BRACE))
@@ -77,6 +81,32 @@ var Parser = /** @class */ (function () {
             this.error(equals, "Invalid assignment target.");
         }
         return expr;
+    };
+    Parser.prototype["function"] = function (kind) {
+        var name = this.consume(svs_1.TokenType.IDENTIFIER, "Expect " + kind + " name.");
+        this.consume(svs_1.TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name");
+        var parameters = [];
+        if (!this.check(svs_1.TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.length >= 255) {
+                    this.error(this.peek(), "Can't have more than 255 parameters.");
+                }
+                parameters.push(this.consume(svs_1.TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (this.match(svs_1.TokenType.COMMA));
+        }
+        this.consume(svs_1.TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+        this.consume(svs_1.TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        var body = this.block();
+        return new st.Func(name, parameters, body);
+    };
+    Parser.prototype.returnStatement = function () {
+        var keyword = this.previous();
+        var value = null;
+        if (!this.check(svs_1.TokenType.SEMICOLON)) {
+            value = this.expression();
+        }
+        this.consume(svs_1.TokenType.SEMICOLON, "Expect ';' after return value.");
+        return new st.Return(keyword, value);
     };
     Parser.prototype.forStatement = function () {
         this.consume(svs_1.TokenType.LEFT_PAREN, "Expect '(' after 'for'.");

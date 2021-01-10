@@ -4,7 +4,9 @@ export interface Visitor<R> {
 	visitBlockStmt(stmt : Block) : R;
 	visitExpressionStmt(stmt : Expression) : R;
 	visitIfStmt(stmt : If) : R;
+	visitFuncStmt(stmt : Func) : R;
 	visitPrintStmt(stmt : Print) : R;
+	visitReturnStmt(stmt : Return) : R;
 	visitVarStmt(stmt : Var) : R;
 	visitWhileStmt(stmt : While) : R;
 }
@@ -46,6 +48,20 @@ export class If extends Stmt {
 		return visitor.visitIfStmt(this);
 	}
 }
+export class Func extends Stmt {
+	name : Token;
+	params : Token[];
+	body : Stmt[];
+	constructor(name : Token, params : Token[], body : Stmt[]){
+		super();
+		this.name = name;
+		this.params = params;
+		this.body = body;
+	}
+	accept<R>(visitor : Visitor<R>) : R{
+		return visitor.visitFuncStmt(this);
+	}
+}
 export class Print extends Stmt {
 	expression : Expr;
 	constructor(expression : Expr){
@@ -54,6 +70,18 @@ export class Print extends Stmt {
 	}
 	accept<R>(visitor : Visitor<R>) : R{
 		return visitor.visitPrintStmt(this);
+	}
+}
+export class Return extends Stmt {
+	keyword : Token;
+	value : Expr;
+	constructor(keyword : Token, value : Expr){
+		super();
+		this.keyword = keyword;
+		this.value = value;
+	}
+	accept<R>(visitor : Visitor<R>) : R{
+		return visitor.visitReturnStmt(this);
 	}
 }
 export class Var extends Stmt {

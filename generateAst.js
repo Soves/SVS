@@ -72,7 +72,10 @@ defineAst(".", "Stmt", 'import {Token} from \"./svs\";\n' +
     "Expression : Expr expression",
     "If         : Expr condition, Stmt thenBranch," +
         " Stmt elseBranch",
+    "Func   : Token name, Token[] params," +
+        " Stmt[] body",
     "Print      : Expr expression",
+    "Return     : Token keyword, Expr value",
     "Var        : Token name, Expr initializer",
     "While      : Expr condition, Stmt body"
 ]);

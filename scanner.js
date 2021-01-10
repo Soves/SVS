@@ -14,7 +14,7 @@ var Scanner = /** @class */ (function () {
             "else": svs_1.TokenType.ELSE,
             "false": svs_1.TokenType.FALSE,
             "for": svs_1.TokenType.FOR,
-            "fun": svs_1.TokenType.FUN,
+            "func": svs_1.TokenType.FUN,
             "if": svs_1.TokenType.IF,
             "null": svs_1.TokenType.NULL,
             "or": svs_1.TokenType.OR,
