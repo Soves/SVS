@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
-exports.Variable = exports.Unary = exports.Logical = exports.Literal = exports.Grouping = exports.Binary = exports.Assign = exports.Expr = void 0;
+exports.Variable = exports.Unary = exports.Logical = exports.Literal = exports.Grouping = exports.Call = exports.Binary = exports.Assign = exports.Expr = void 0;
 var Expr = /** @class */ (function () {
     function Expr() {
     }
@@ -49,6 +49,21 @@ var Binary = /** @class */ (function (_super) {
     return Binary;
 }(Expr));
 exports.Binary = Binary;
+var Call = /** @class */ (function (_super) {
+    __extends(Call, _super);
+    function Call(callee, paren, args) {
+        var _this = _super.call(this) || this;
+        _this.callee = callee;
+        _this.paren = paren;
+        _this.args = args;
+        return _this;
+    }
+    Call.prototype.accept = function (visitor) {
+        return visitor.visitCallExpr(this);
+    };
+    return Call;
+}(Expr));
+exports.Call = Call;
 var Grouping = /** @class */ (function (_super) {
     __extends(Grouping, _super);
     function Grouping(expression) {

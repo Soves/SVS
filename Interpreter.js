@@ -3,6 +3,7 @@ exports.__esModule = true;
 exports.Interpreter = exports.RuntimeError = void 0;
 var svs_1 = require("./svs");
 var Environment_1 = require("./Environment");
+var readline = require("readline-sync");
 var RuntimeError = /** @class */ (function () {
     function RuntimeError(token, message) {
         this.token = token;
@@ -13,8 +14,25 @@ var RuntimeError = /** @class */ (function () {
 exports.RuntimeError = RuntimeError;
 var Interpreter = /** @class */ (function () {
     function Interpreter(creator) {
-        this.environment = new Environment_1.Environment();
+        this.globals = new Environment_1.Environment();
+        this.environment = this.globals;
         this.creator = creator;
+        this.globals.define("clock", {
+            kind: "callable",
+            arity: function () { return 0; },
+            call: function (interpreter, args) {
+                return Date.now();
+            },
+            toString: function () { return "<native fn>"; }
+        });
+        this.globals.define("input", {
+            kind: "callable",
+            arity: function () { return 0; },
+            call: function (interpreter, args) {
+                return readline.question("");
+            },
+            toString: function () { return "<native fn>"; }
+        });
     }
     Interpreter.prototype.interpret = function (expression) {
         var _this = this;
@@ -81,6 +99,24 @@ var Interpreter = /** @class */ (function () {
         if (typeof left == 'number' && typeof right == 'number')
             return;
         throw new RuntimeError(operator, "Operands must be a number.");
+    };
+    Interpreter.prototype.visitCallExpr = function (expr) {
+        var _this = this;
+        var callee = this.evaluate(expr.callee);
+        var args = [];
+        expr.args.forEach(function (argument) {
+            args.push(_this.evaluate(argument));
+        });
+        if (!(callee.kind == "callable")) {
+            throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+        }
+        var func = callee;
+        if (args.length != func.arity()) {
+            throw new RuntimeError(expr.paren, "Expected " +
+                func.arity() + " arguments but got " +
+                args.length + ".");
+        }
+        return func.call(this, args);
     };
     Interpreter.prototype.visitWhileStmt = function (stmt) {
         while (this.isTruthy(this.evaluate(stmt.condition))) {

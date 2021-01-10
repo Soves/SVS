@@ -252,13 +252,38 @@ var Parser = /** @class */ (function () {
         }
         throw this.error(this.peek(), "Expect expression.");
     };
+    Parser.prototype.finishCall = function (callee) {
+        var args = [];
+        if (!this.check(svs_1.TokenType.RIGHT_PAREN)) {
+            do {
+                if (args.length >= 255) {
+                    this.error(this.peek(), "Can't have more than 255 arguments.");
+                }
+                args.push(this.expression());
+            } while (this.match(svs_1.TokenType.COMMA));
+        }
+        var paren = this.consume(svs_1.TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
+        return new ex.Call(callee, paren, args);
+    };
+    Parser.prototype.call = function () {
+        var expr = this.primary();
+        while (true) {
+            if (this.match(svs_1.TokenType.LEFT_PAREN)) {
+                expr = this.finishCall(expr);
+            }
+            else {
+                break;
+            }
+        }
+        return expr;
+    };
     Parser.prototype.unary = function () {
         if (this.match(svs_1.TokenType.BANG, svs_1.TokenType.MINUS)) {
             var operator = this.previous();
             var right = this.unary();
             return new ex.Unary(operator, right);
         }
-        return this.primary();
+        return this.call();
     };
     Parser.prototype.factor = function () {
         var expr = this.unary();

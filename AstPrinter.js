@@ -21,6 +21,9 @@ var AstPrinter = /** @class */ (function () {
     AstPrinter.prototype.print = function (expr) {
         return expr.accept(this);
     };
+    AstPrinter.prototype.visitCallExpr = function (expr) {
+        return "function";
+    };
     AstPrinter.prototype.visitLogicalExpr = function (expr) {
         return this.parenthesize(expr.operator.lexeme, expr);
     };

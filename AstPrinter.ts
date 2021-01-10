@@ -18,6 +18,10 @@ export class AstPrinter implements ex.Visitor<string>
     {
         return expr.accept(this);
     }
+    
+    visitCallExpr(expr : ex.Call) : string{
+        return "function";
+    }
 
     visitLogicalExpr(expr : ex.Logical) : string{
         return this.parenthesize(expr.operator.lexeme, expr);

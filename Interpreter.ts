@@ -5,6 +5,9 @@ import {AstPrinter} from "./AstPrinter"
 import {Token, SVS, TokenType} from "./svs"
 import * as st from "./Stmt"
 import { Environment } from "./Environment";
+import {SVSCallable} from "./SVSCallable";
+import { callbackify } from "util";
+import * as readline from "readline-sync";
 
 export class RuntimeError
 {
@@ -22,18 +25,44 @@ export class RuntimeError
 export class Interpreter implements ex.Visitor<Object>, st.Visitor<void>
 {
 
-    private environment : Environment = new Environment();   
+    private globals : Environment = new Environment();  
+    private environment : Environment = this.globals;
+
     creator : SVS;
 
     constructor(creator : SVS)
     {
         this.creator = creator;
+
+        this.globals.define("clock", {
+            kind : "callable",
+            arity() : number {return 0;},
+
+            call(interpreter : Interpreter, args : Object[]) : Object
+            {
+                return Date.now();
+            },
+            
+            toString() : string {return "<native fn>"}
+        } as SVSCallable);
+
+        this.globals.define("input", {
+            kind : "callable",
+            arity() : number {return 0;},
+
+            call(interpreter : Interpreter, args : Object[]) : Object
+            {
+                return readline.question("");
+            },
+            
+            toString() : string {return "<native fn>"}
+        } as SVSCallable);
     }
 
     interpret(expression : st.Stmt[])
     {
         try
-        {
+        {   
             expression.forEach((statement : st.Stmt)=>
             {
                 this.execute(statement);
@@ -113,6 +142,32 @@ export class Interpreter implements ex.Visitor<Object>, st.Visitor<void>
     {
         if (typeof left == 'number' && typeof right == 'number') return;
         throw new RuntimeError(operator, "Operands must be a number.");
+    }
+
+    visitCallExpr(expr : ex.Call) : Object
+    {
+        let callee : Object = this.evaluate(expr.callee);
+
+        let args : Object[] = [];
+
+        expr.args.forEach((argument : ex.Expr)=>{
+            args.push(this.evaluate(argument));
+        });
+
+        if(!((<SVSCallable>callee).kind == "callable"))
+        {
+            throw new RuntimeError(expr.paren,
+                "Can only call functions and classes.");
+        }
+
+        let func : SVSCallable = <SVSCallable>callee;
+        if(args.length != func.arity())
+        {
+            throw new RuntimeError(expr.paren, "Expected " +
+            func.arity() + " arguments but got " +
+            args.length + ".");
+        }
+        return func.call(this, args);
     }
 
     visitWhileStmt(stmt : st.While) 
