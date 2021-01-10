@@ -22,7 +22,8 @@ export class Environment
 
     get(name : Token) : Object
     {
-        if (this.values[name.lexeme] != undefined)
+        
+        if (typeof this.values[name.lexeme] != 'undefined')
         {
             return this.values[name.lexeme];
         }
@@ -40,7 +41,8 @@ export class Environment
 
     assign(name : Token, value : Object)
     {
-        if(this.values[name.lexeme] != undefined)
+        
+        if(typeof this.values[name.lexeme] != 'undefined')
         {
             this.values[name.lexeme] = value;
             return;

@@ -53,6 +53,8 @@ var Parser = /** @class */ (function () {
         return new st.Var(name, initializer);
     };
     Parser.prototype.statement = function () {
+        if (this.match(svs_1.TokenType.FOR))
+            return this.forStatement();
         if (this.match(svs_1.TokenType.IF))
             return this.ifStatement();
         if (this.match(svs_1.TokenType.PRINT))
@@ -75,6 +77,40 @@ var Parser = /** @class */ (function () {
             this.error(equals, "Invalid assignment target.");
         }
         return expr;
+    };
+    Parser.prototype.forStatement = function () {
+        this.consume(svs_1.TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+        var initializer;
+        if (this.match(svs_1.TokenType.SEMICOLON)) {
+            initializer = null;
+        }
+        else if (this.match(svs_1.TokenType.VAR)) {
+            initializer = this.varDeclaration();
+        }
+        else {
+            initializer = this.expressionStatement();
+        }
+        var condition = null;
+        if (!this.check(svs_1.TokenType.SEMICOLON)) {
+            condition = this.expression();
+        }
+        this.consume(svs_1.TokenType.SEMICOLON, "Expect ';' after loop condition.");
+        var increment = null;
+        if (!this.check(svs_1.TokenType.RIGHT_PAREN)) {
+            increment = this.expression();
+        }
+        this.consume(svs_1.TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+        var body = this.statement();
+        if (increment != null) {
+            body = new st.Block([body, new st.Expression(increment)]);
+        }
+        if (condition === null)
+            condition = new ex.Literal(true);
+        body = new st.While(condition, body);
+        if (initializer != null) {
+            body = new st.Block([initializer, body]);
+        }
+        return body;
     };
     Parser.prototype.whileStatement = function () {
         this.consume(svs_1.TokenType.LEFT_PAREN, "Expect '(' after 'while'.");

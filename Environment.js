@@ -9,7 +9,7 @@ var Environment = /** @class */ (function () {
         this.enclosing = enclosing;
     }
     Environment.prototype.get = function (name) {
-        if (this.values[name.lexeme] != undefined) {
+        if (typeof this.values[name.lexeme] != 'undefined') {
             return this.values[name.lexeme];
         }
         if (this.enclosing != null)
@@ -20,7 +20,7 @@ var Environment = /** @class */ (function () {
         this.values[name] = value;
     };
     Environment.prototype.assign = function (name, value) {
-        if (this.values[name.lexeme] != undefined) {
+        if (typeof this.values[name.lexeme] != 'undefined') {
             this.values[name.lexeme] = value;
             return;
         }

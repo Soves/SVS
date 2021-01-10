@@ -5,6 +5,7 @@ import {AstPrinter} from "./AstPrinter"
 import {Token, SVS, TokenType} from "./svs"
 import * as st from "./Stmt"
 import { match } from "assert";
+import { EventLoopUtilization } from "perf_hooks";
 export class ParseError
 {
         
@@ -63,7 +64,7 @@ export class Parser
     {
         let name : Token = this.consume(TokenType.IDENTIFIER, "Expect variable name.");
 
-        let initializer :ex.Expr = null;
+        let initializer : ex.Expr = null;
 
         if(this.match(TokenType.EQUAL))
         {
@@ -76,6 +77,7 @@ export class Parser
 
     private statement() : st.Stmt
     {
+        if(this.match(TokenType.FOR)) return this.forStatement();
         if(this.match(TokenType.IF)) return this.ifStatement();
         if(this.match(TokenType.PRINT)) return this.printStatement();
         if(this.match(TokenType.WHILE)) return this.whileStatement();
@@ -103,6 +105,57 @@ export class Parser
         }
 
         return expr;
+    }
+
+    private forStatement() : st.Stmt
+    {
+        this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+
+        let initializer : st.Stmt;
+        if(this.match(TokenType.SEMICOLON))
+        {
+            initializer = null;
+        }
+        else if(this.match(TokenType.VAR))
+        {
+            initializer = this.varDeclaration();
+        }
+        else
+        {
+            initializer = this.expressionStatement();
+        }
+
+        let condition : ex.Expr = null;
+        if(!this.check(TokenType.SEMICOLON))
+        {
+            condition = this.expression();
+        }
+
+        this.consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+        let increment : ex.Expr = null;
+        if(!this.check(TokenType.RIGHT_PAREN))
+        {
+            increment = this.expression();
+        }
+        this.consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        let body : st.Stmt = this.statement();
+
+        if (increment != null)
+        {
+            body = new st.Block([body, new st.Expression(increment)]);
+        }
+
+        if (condition === null) condition = new ex.Literal(true);
+        body = new st.While(condition, body);
+
+        if (initializer != null)
+        {
+            body = new st.Block([initializer, body]);
+        }
+        
+        return body;
     }
 
     private whileStatement() : st.Stmt

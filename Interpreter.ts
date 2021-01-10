@@ -173,6 +173,7 @@ export class Interpreter implements ex.Visitor<Object>, st.Visitor<void>
         if(stmt.initializer != null)
         {
             value = this.evaluate(stmt.initializer);
+            
         }
 
         this.environment.define(stmt.name.lexeme, value);
