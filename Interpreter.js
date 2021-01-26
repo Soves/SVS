@@ -5,6 +5,7 @@ var svs_1 = require("./svs");
 var Environment_1 = require("./Environment");
 var SVSCallable_1 = require("./SVSCallable");
 var readline = require("readline-sync");
+var HashMap = require("hashmap");
 var RuntimeError = /** @class */ (function () {
     function RuntimeError(token, message) {
         this.token = token;
@@ -24,6 +25,7 @@ var Interpreter = /** @class */ (function () {
     function Interpreter(creator) {
         this.globals = new Environment_1.Environment();
         this.environment = this.globals;
+        this.locals = new HashMap();
         this.creator = creator;
         this.globals.define("clock", {
             kind: "callable",
@@ -51,6 +53,18 @@ var Interpreter = /** @class */ (function () {
         }
         catch (e) {
             this.creator.runtimeError(e);
+        }
+    };
+    Interpreter.prototype.resolve = function (expr, depth) {
+        this.locals.set(expr, depth);
+    };
+    Interpreter.prototype.lookUpVariable = function (name, expr) {
+        var distance = this.locals.get(expr);
+        if (typeof distance != 'undefined') {
+            return this.environment.getAt(distance, name);
+        }
+        else {
+            return this.globals.get(name);
         }
     };
     Interpreter.prototype.execute = function (stmt) {
@@ -170,7 +184,13 @@ var Interpreter = /** @class */ (function () {
     };
     Interpreter.prototype.visitAssignExpr = function (expr) {
         var value = this.evaluate(expr.value);
-        this.environment.assign(expr.name, value);
+        var distance = this.locals.get(expr);
+        if (distance != null) {
+            this.environment.assignAt(distance, expr.name, value);
+        }
+        else {
+            this.globals.assign(expr.name, value);
+        }
         return value;
     };
     Interpreter.prototype.visitVarStmt = function (stmt) {
@@ -182,7 +202,7 @@ var Interpreter = /** @class */ (function () {
         return null;
     };
     Interpreter.prototype.visitVariableExpr = function (expr) {
-        return this.environment.get(expr.name);
+        return this.lookUpVariable(expr.name, expr);
     };
     Interpreter.prototype.visitExpressionStmt = function (stmt) {
         this.evaluate(stmt.expression);

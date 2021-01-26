@@ -5,6 +5,7 @@ var fs = require("fs");
 var parser_1 = require("./parser");
 var scanner_1 = require("./scanner");
 var Interpreter_1 = require("./Interpreter");
+var resolver_1 = require("./resolver");
 var TokenType;
 (function (TokenType) {
     // Single-character tokens.
@@ -94,6 +95,10 @@ var SVS = /** @class */ (function () {
         var tokens = scanner.scanTokens();
         var parser = new parser_1.Parser(tokens, this);
         var statements = parser.parse();
+        if (this.hadError)
+            return;
+        var resolver = new resolver_1.Resolver(this.interpreter, this);
+        resolver.resolve(statements);
         if (this.hadError)
             return;
         this.interpreter.interpret(statements);

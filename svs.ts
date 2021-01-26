@@ -2,6 +2,7 @@ import * as fs from "fs";
 import {Parser} from "./parser"
 import {Scanner} from "./scanner"
 import {Interpreter, RuntimeError} from "./Interpreter"
+import {Resolver} from "./resolver"
 import * as st from "./Stmt"
 
 export enum TokenType
@@ -91,6 +92,11 @@ export class SVS
 
         let parser : Parser = new Parser(tokens, this);
         let statements : st.Stmt[] = parser.parse();
+
+        if(this.hadError) return;
+
+        let resolver : Resolver = new Resolver(this.interpreter, this);
+        resolver.resolve(statements);
 
         if(this.hadError) return;
 

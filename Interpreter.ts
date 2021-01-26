@@ -8,6 +8,7 @@ import { Environment } from "./Environment";
 import {SVSCallable, SVSFunction} from "./SVSCallable";
 import { callbackify } from "util";
 import * as readline from "readline-sync";
+import * as HashMap from "hashmap";
 
 export class RuntimeError
 {
@@ -36,6 +37,7 @@ export class Interpreter implements ex.Visitor<Object>, st.Visitor<void>
 
     globals : Environment = new Environment();  
     private environment : Environment = this.globals;
+    private locals : HashMap = new HashMap();
 
     creator : SVS;
 
@@ -80,6 +82,24 @@ export class Interpreter implements ex.Visitor<Object>, st.Visitor<void>
         catch(e)
         {
             this.creator.runtimeError(e);
+        }
+    }
+
+    resolve(expr : ex.Expr, depth : number)
+    {
+        this.locals.set(expr, depth);
+    }
+
+    private lookUpVariable(name : Token, expr : ex.Expr) : Object
+    {
+        let distance : number = this.locals.get(expr);
+        if(typeof distance != 'undefined')
+        {
+            return this.environment.getAt(distance, name);
+        }
+        else
+        {
+            return this.globals.get(name);
         }
     }
 
@@ -242,7 +262,17 @@ export class Interpreter implements ex.Visitor<Object>, st.Visitor<void>
     visitAssignExpr(expr : ex.Assign) : Object
     {
         let value : Object = this.evaluate(expr.value);
-        this.environment.assign(expr.name, value);
+
+        let distance = this.locals.get(expr);
+        if(distance != null)
+        {
+            this.environment.assignAt(distance, expr.name, value);
+        }
+        else
+        {
+            this.globals.assign(expr.name, value);
+        }
+        
         return value;
     }
 
@@ -261,7 +291,7 @@ export class Interpreter implements ex.Visitor<Object>, st.Visitor<void>
     
     visitVariableExpr(expr : ex.Variable) : Object
     {
-        return this.environment.get(expr.name);
+        return this.lookUpVariable(expr.name, expr);
     }
 
     visitExpressionStmt(stmt : st.Expression)

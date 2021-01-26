@@ -1,60 +1,14 @@
-var quit = false;
-var roomW = 10;
-var roomH = 10;
-
-var pX = 0;
-var pY = 0;
-
-func update()
-{
-    var in = input();
-
-    if(in=="d") pX = pX + 1;
-    if(in=="a") pX = pX - 1;
-
-    if(in=="s") pY = pY + 1;
-    if(in=="w") pY = pY - 1;
-
-    if(in=="q") quit = true;
-
+func fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 2) + fib(n - 1);
 }
 
-func getPixel(x, y)
-{
-    if (pX == x and pY == y) 
-    {
-        return "# ";
-    }
-    else
-    {
-        return "+ ";
-    }
+var time = clock();
+
+for (var i = 0; i < 10; i = i + 1) {
+  print fib(i);
 }
 
-func draw()
-{
-
-    var str = "";
-
-    for(var i = 0; i < roomH; i = i+1)
-    {
-        for(var j = 0; j < roomW; j = j+1)
-        {
-            str = str + getPixel(j,i);
-        } 
-        print str;
-        str = "";
-    }
-
-}
-
-func main()
-{
-    while(!quit)
-    {
-        update();
-        draw();
-    }
-}
-
-main();
+print "-------";
+print "ms:";
+print clock() - time;

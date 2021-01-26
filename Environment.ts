@@ -34,6 +34,22 @@ export class Environment
             "Undefined variable '" + name.lexeme + "'.");
     }
 
+    getAt(distance : number, name : Token) : Object
+    {
+        return this.ancestor(distance).get(name);
+    }
+
+    ancestor(distance : number) : Environment
+    {
+        let environment : Environment = this;
+        for(let i = 0; i < distance; i++)
+        {
+            environment = environment.enclosing;
+        }
+
+        return environment;
+    }
+
     define(name : string, value : Object)
     {
         this.values[name] = value;
@@ -56,5 +72,10 @@ export class Environment
 
         throw new RuntimeError(name,
             "Undefined variable '" + name.lexeme + "'.");
+    }
+
+    assignAt(distance : number, name : Token, value : Object)
+    {
+        this.ancestor(distance).values[name.lexeme] = value;
     }
 }
